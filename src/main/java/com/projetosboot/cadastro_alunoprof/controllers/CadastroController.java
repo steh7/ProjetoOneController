@@ -28,11 +28,11 @@ public class CadastroController {
 
     // ALUNOS
     @GetMapping("/alunos")
-public ResponseEntity<Object> getAlunos() {
-    return alunos.isEmpty() ? 
-        ResponseEntity.ok(Map.of("message", "Nenhum aluno cadastrado.")) : 
-        ResponseEntity.ok(alunos);
-}
+    public ResponseEntity<Object> getAlunos() {
+        return alunos.isEmpty() ? 
+            ResponseEntity.ok(Map.of("message", "Nenhum aluno cadastrado.")) : 
+            ResponseEntity.ok(alunos);
+    }
 
     @PostMapping("/alunos")
     public ResponseEntity<Object> addAluno(@RequestBody @Valid Aluno aluno) {
@@ -111,7 +111,7 @@ public ResponseEntity<Object> getAlunos() {
     @GetMapping("/professores")
     public ResponseEntity<Object> getProfessores() {
         return professores.isEmpty() ? 
-            ResponseEntity.status(204).body(Map.of("message", "Nenhum professor cadastrado.")) : 
+            ResponseEntity.ok(Map.of("message", "Nenhum professor cadastrado.")) : 
             ResponseEntity.ok(professores);
     }
 
@@ -184,7 +184,7 @@ public ResponseEntity<Object> getAlunos() {
     @GetMapping("/funcionarios")
     public ResponseEntity<Object> getFuncionarios() {
         return funcionarios.isEmpty() ? 
-            ResponseEntity.status(204).body(Map.of("message", "Nenhum funcionário cadastrado.")) : 
+            ResponseEntity.ok(Map.of("message", "Nenhum funcionário cadastrado.")) : 
             ResponseEntity.ok(funcionarios);
     }
 
