@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.projetosboot.cadastro_alunoprof.models.Pessoa;
 import com.projetosboot.cadastro_alunoprof.models.Aluno;
 import com.projetosboot.cadastro_alunoprof.models.Professor;
 import com.projetosboot.cadastro_alunoprof.models.Funcionario;
@@ -17,9 +18,8 @@ import java.util.Optional;
 @RequestMapping("/cadastro")
 public class CadastroController {
 
-    private static final List<Aluno> alunos = new ArrayList<>();
-    private static final List<Professor> professores = new ArrayList<>();
-    private static final List<Funcionario> funcionarios = new ArrayList<>();
+    // Lista única de Pessoas
+    private static final List<Pessoa> cadastros = new ArrayList<>();
 
     // Validação simples de CPF (apenas formato básico)
     private boolean isValidCPF(String cpf) {
@@ -29,6 +29,11 @@ public class CadastroController {
     // ALUNOS
     @GetMapping("/alunos")
     public ResponseEntity<Object> getAlunos() {
+        List<Aluno> alunos = cadastros.stream()
+            .filter(p -> p instanceof Aluno)
+            .map(p -> (Aluno) p)
+            .toList();
+        
         return alunos.isEmpty() ? 
             ResponseEntity.ok(Map.of("message", "Nenhum aluno cadastrado.")) : 
             ResponseEntity.ok(alunos);
@@ -43,14 +48,14 @@ public class CadastroController {
             ));
         }
         
-        if (alunos.stream().anyMatch(a -> a.getCpf().equals(aluno.getCpf()))) {
+        if (cadastros.stream().anyMatch(p -> p.getCpf().equals(aluno.getCpf()))) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Aluno já cadastrado",
-                "message", "Já existe um aluno com este CPF"
+                "error", "CPF já cadastrado",
+                "message", "Já existe uma pessoa com este CPF no sistema"
             ));
         }
         
-        alunos.add(aluno);
+        cadastros.add(aluno);
         return ResponseEntity.status(201).body(Map.of(
             "success", "Aluno cadastrado com sucesso!",
             "aluno", aluno
@@ -59,12 +64,12 @@ public class CadastroController {
 
     @PutMapping("/aluno/{cpf}/edit")
     public ResponseEntity<Object> updateAluno(@PathVariable String cpf, @RequestBody @Valid Aluno alunoNovo) {
-        Optional<Aluno> alunoOpt = alunos.stream()
-            .filter(a -> a.getCpf().equals(cpf))
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p instanceof Aluno && p.getCpf().equals(cpf))
             .findFirst();
 
-        if (alunoOpt.isPresent()) {
-            Aluno aluno = alunoOpt.get();
+        if (cadastroOpt.isPresent()) {
+            Aluno aluno = (Aluno) cadastroOpt.get();
             if (aluno.getIdade() >= 18) {
                 aluno.setNome(alunoNovo.getNome());
                 aluno.setSobrenome(alunoNovo.getSobrenome());
@@ -89,12 +94,12 @@ public class CadastroController {
 
     @DeleteMapping("/aluno/{cpf}/delete")
     public ResponseEntity<Object> deleteAluno(@PathVariable String cpf) {
-        Optional<Aluno> alunoOpt = alunos.stream()
-            .filter(a -> a.getCpf().equals(cpf))
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p instanceof Aluno && p.getCpf().equals(cpf))
             .findFirst();
 
-        if (alunoOpt.isPresent()) {
-            alunos.remove(alunoOpt.get());
+        if (cadastroOpt.isPresent()) {
+            cadastros.remove(cadastroOpt.get());
             return ResponseEntity.ok(Map.of(
                 "success", "Aluno deletado com sucesso!",
                 "message", "O aluno foi removido do sistema permanentemente."
@@ -110,6 +115,11 @@ public class CadastroController {
     // PROFESSORES
     @GetMapping("/professores")
     public ResponseEntity<Object> getProfessores() {
+        List<Professor> professores = cadastros.stream()
+            .filter(p -> p instanceof Professor)
+            .map(p -> (Professor) p)
+            .toList();
+        
         return professores.isEmpty() ? 
             ResponseEntity.ok(Map.of("message", "Nenhum professor cadastrado.")) : 
             ResponseEntity.ok(professores);
@@ -124,14 +134,14 @@ public class CadastroController {
             ));
         }
         
-        if (professores.stream().anyMatch(p -> p.getCpf().equals(professor.getCpf()))) {
+        if (cadastros.stream().anyMatch(p -> p.getCpf().equals(professor.getCpf()))) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Professor já cadastrado",
-                "message", "Já existe um professor com este CPF"
+                "error", "CPF já cadastrado",
+                "message", "Já existe uma pessoa com este CPF no sistema"
             ));
         }
         
-        professores.add(professor);
+        cadastros.add(professor);
         return ResponseEntity.status(201).body(Map.of(
             "success", "Professor cadastrado com sucesso!",
             "professor", professor
@@ -140,12 +150,12 @@ public class CadastroController {
 
     @PutMapping("/professor/{cpf}/edit")
     public ResponseEntity<Object> updateProfessor(@PathVariable String cpf, @RequestBody @Valid Professor professorNovo) {
-        Optional<Professor> professorOpt = professores.stream()
-            .filter(p -> p.getCpf().equals(cpf))
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p instanceof Professor && p.getCpf().equals(cpf))
             .findFirst();
 
-        if (professorOpt.isPresent()) {
-            Professor professor = professorOpt.get();
+        if (cadastroOpt.isPresent()) {
+            Professor professor = (Professor) cadastroOpt.get();
             professor.setNome(professorNovo.getNome());
             professor.setSobrenome(professorNovo.getSobrenome());
             return ResponseEntity.ok(Map.of(
@@ -162,12 +172,12 @@ public class CadastroController {
 
     @DeleteMapping("/professor/{cpf}/delete")
     public ResponseEntity<Object> deleteProfessor(@PathVariable String cpf) {
-        Optional<Professor> professorOpt = professores.stream()
-            .filter(p -> p.getCpf().equals(cpf))
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p instanceof Professor && p.getCpf().equals(cpf))
             .findFirst();
 
-        if (professorOpt.isPresent()) {
-            professores.remove(professorOpt.get());
+        if (cadastroOpt.isPresent()) {
+            cadastros.remove(cadastroOpt.get());
             return ResponseEntity.ok(Map.of(
                 "success", "Professor deletado com sucesso!",
                 "message", "O professor foi removido do sistema permanentemente."
@@ -183,6 +193,11 @@ public class CadastroController {
     // FUNCIONÁRIOS
     @GetMapping("/funcionarios")
     public ResponseEntity<Object> getFuncionarios() {
+        List<Funcionario> funcionarios = cadastros.stream()
+            .filter(p -> p instanceof Funcionario)
+            .map(p -> (Funcionario) p)
+            .toList();
+        
         return funcionarios.isEmpty() ? 
             ResponseEntity.ok(Map.of("message", "Nenhum funcionário cadastrado.")) : 
             ResponseEntity.ok(funcionarios);
@@ -197,14 +212,14 @@ public class CadastroController {
             ));
         }
         
-        if (funcionarios.stream().anyMatch(f -> f.getCpf().equals(funcionario.getCpf()))) {
+        if (cadastros.stream().anyMatch(p -> p.getCpf().equals(funcionario.getCpf()))) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Funcionário já cadastrado",
-                "message", "Já existe um funcionário com este CPF"
+                "error", "CPF já cadastrado",
+                "message", "Já existe uma pessoa com este CPF no sistema"
             ));
         }
         
-        funcionarios.add(funcionario);
+        cadastros.add(funcionario);
         return ResponseEntity.status(201).body(Map.of(
             "success", "Funcionário cadastrado com sucesso!",
             "funcionario", funcionario
@@ -213,12 +228,12 @@ public class CadastroController {
 
     @PutMapping("/funcionario/{cpf}/edit")
     public ResponseEntity<Object> updateFuncionario(@PathVariable String cpf, @RequestBody @Valid Funcionario funcionarioNovo) {
-        Optional<Funcionario> funcionarioOpt = funcionarios.stream()
-            .filter(f -> f.getCpf().equals(cpf))
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p instanceof Funcionario && p.getCpf().equals(cpf))
             .findFirst();
 
-        if (funcionarioOpt.isPresent()) {
-            Funcionario funcionario = funcionarioOpt.get();
+        if (cadastroOpt.isPresent()) {
+            Funcionario funcionario = (Funcionario) cadastroOpt.get();
             funcionario.setNome(funcionarioNovo.getNome());
             funcionario.setSobrenome(funcionarioNovo.getSobrenome());
             return ResponseEntity.ok(Map.of(
@@ -235,12 +250,12 @@ public class CadastroController {
 
     @DeleteMapping("/funcionario/{cpf}/delete")
     public ResponseEntity<Object> deleteFuncionario(@PathVariable String cpf) {
-        Optional<Funcionario> funcionarioOpt = funcionarios.stream()
-            .filter(f -> f.getCpf().equals(cpf))
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p instanceof Funcionario && p.getCpf().equals(cpf))
             .findFirst();
 
-        if (funcionarioOpt.isPresent()) {
-            funcionarios.remove(funcionarioOpt.get());
+        if (cadastroOpt.isPresent()) {
+            cadastros.remove(cadastroOpt.get());
             return ResponseEntity.ok(Map.of(
                 "success", "Funcionário deletado com sucesso!",
                 "message", "O funcionário foi removido do sistema permanentemente."
@@ -253,35 +268,26 @@ public class CadastroController {
         ));
     }
 
-    // Método genérico para show
-    private <T> ResponseEntity<Object> showEntity(List<T> list, String type, String cpf) {
-        Optional<T> entity = list.stream()
-            .filter(e -> {
-                if (e instanceof Aluno) return ((Aluno)e).getCpf().equals(cpf);
-                if (e instanceof Professor) return ((Professor)e).getCpf().equals(cpf);
-                if (e instanceof Funcionario) return ((Funcionario)e).getCpf().equals(cpf);
-                return false;
-            })
+    // CONSULTA GENÉRICA POR CPF
+    @GetMapping("/{cpf}")
+    public ResponseEntity<Object> showByCpf(@PathVariable String cpf) {
+        Optional<Pessoa> cadastroOpt = cadastros.stream()
+            .filter(p -> p.getCpf().equals(cpf))
             .findFirst();
 
-        return entity.isPresent() ? 
-            ResponseEntity.ok(Map.of("message", type + " encontrado!", type.toLowerCase(), entity.get())) :
-            ResponseEntity.status(404).body(Map.of("error", type + " não encontrado!", 
-                "message", "Não há " + type.toLowerCase() + " com este CPF"));
-    }
+        if (cadastroOpt.isPresent()) {
+            Pessoa pessoa = cadastroOpt.get();
+            String type = pessoa instanceof Aluno ? "aluno" : 
+                          pessoa instanceof Professor ? "professor" : "funcionario";
+            return ResponseEntity.ok(Map.of(
+                "message", type.substring(0, 1).toUpperCase() + type.substring(1) + " encontrado!",
+                type, pessoa
+            ));
+        }
 
-    @GetMapping("/aluno/{cpf}")
-    public ResponseEntity<Object> showAluno(@PathVariable String cpf) {
-        return showEntity(alunos, "Aluno", cpf);
-    }
-
-    @GetMapping("/professor/{cpf}")
-    public ResponseEntity<Object> showProfessor(@PathVariable String cpf) {
-        return showEntity(professores, "Professor", cpf);
-    }
-
-    @GetMapping("/funcionario/{cpf}")
-    public ResponseEntity<Object> showFuncionario(@PathVariable String cpf) {
-        return showEntity(funcionarios, "Funcionário", cpf);
+        return ResponseEntity.status(404).body(Map.of(
+            "error", "Não encontrado!",
+            "message", "Não há cadastro com este CPF."
+        ));
     }
 }
